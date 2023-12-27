@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+    php:
+        image: php:8.2-fpm
+        working_dir: "/var/www/html"
+        command: "php artisan serve --host=0.0.0.0 --port=80"
+        volumes:
+            - ".:/var/www/html"
+        ports:
+            - "80:80"
+        depends_on:
+            - db_mysql
+        environment:
+            DB_CONNECTION: mysql
+            DB_HOST: db_mysql
+            DB_PORT: 3306
+            DB_DATABASE: "${MYSQL_DATABASE:-base}"
+            DB_USERNAME: "${MYSQL_USER:-dbuser}"
+            DB_PASSWORD: "${MYSQL_PASSWORD:-pass4dbuser}"
+
+    composer:
+        image: composer
+        volumes:
+            - ".:/app"
+
+    db_mysql:
+        image: mysql:latest
+        container_name: mysql_${PROJECT_NAME}
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-rootpass}"
+            MYSQL_DATABASE: "${MYSQL_DATABASE:-base}"
+            MYSQL_USER: "${MYSQL_USER:-dbuser}"
+            MYSQL_PASSWORD: "${MYSQL_PASSWORD:-pass4dbuser}"
+        volumes:
+            - "./docker/databases/mysql_dump:/docker-entrypoint-initdb.d"
